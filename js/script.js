@@ -1401,3 +1401,13 @@ if (typeof module !== "undefined") {
     RenderModule,
   };
 }
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      splash.style.opacity = '0';
+      setTimeout(() => splash.remove(), 500);
+    }
+  }, 1000); // splash muncul 1 detik, terus fade out 0.5 detik
+});

@@ -885,3 +885,9 @@ textarea:focus {
     max-width: 360px;
   }
 }
+
+.app-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
