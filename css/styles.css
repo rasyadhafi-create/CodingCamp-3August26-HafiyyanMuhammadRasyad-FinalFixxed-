@@ -1,0 +1,863 @@
+/* ============================================================
+   Spenchart — Main Stylesheet
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. CSS Custom Property Tokens (Theme Variables)
+   ------------------------------------------------------------ */
+
+[data-theme="light"] {
+  --color-bg:        #F8FAFC;
+  --color-surface:   #FFFFFF;
+  --color-text:      #0F172A;
+  --color-muted:     #64748B;
+  --color-accent:    #2563EB;
+  --color-income:    #10B981;
+  --color-warning:   #F59E0B;
+  --color-expense:   #EF4444;
+}
+
+[data-theme="dark"] {
+  --color-bg:        #0F172A;
+  --color-surface:   #1E293B;
+  --color-text:      #F1F5F9;
+  --color-muted:     #94A3B8;
+  --color-accent:    #22D3EE;
+  --color-income:    #10B981;
+  --color-warning:   #F59E0B;
+  --color-expense:   #EF4444;
+}
+
+/* ------------------------------------------------------------
+   2. CSS Reset
+   ------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+  font: inherit;
+  border: none;
+  background: none;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--color-muted);
+  margin: 1rem 0;
+  opacity: 0.3;
+}
+
+/* ------------------------------------------------------------
+   3. Utility Classes
+   ------------------------------------------------------------ */
+
+.hidden {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------
+   4. Layout
+   ------------------------------------------------------------ */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.app-main {
+  flex: 1;
+  padding: 1rem;
+  padding-bottom: 5rem; /* clearance for bottom-nav */
+  overflow-y: auto;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  background-color: var(--color-surface);
+  border-top: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+/* ------------------------------------------------------------
+   5. Header Components
+   ------------------------------------------------------------ */
+
+.app-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  color: var(--color-text);
+  transition: background-color 0.2s;
+}
+
+.theme-switcher:hover {
+  background-color: rgba(100, 116, 139, 0.15);
+}
+
+.profile-avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------
+   6. Tab Sections
+   ------------------------------------------------------------ */
+
+.tab-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ------------------------------------------------------------
+   7. Card Component
+   ------------------------------------------------------------ */
+
+.card {
+  background-color: var(--color-surface);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ------------------------------------------------------------
+   8. Hero Balance Card
+   ------------------------------------------------------------ */
+
+.hero-balance-card {
+  background-color: var(--color-surface);
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.balance-label {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin-bottom: 0.25rem;
+}
+
+.balance-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-income);
+}
+
+.balance-amount.negative {
+  color: var(--color-expense);
+}
+
+/* ------------------------------------------------------------
+   9. Forms
+   ------------------------------------------------------------ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1.5px solid rgba(100, 116, 139, 0.3);
+  border-radius: 8px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.field-error {
+  font-size: 0.8125rem;
+  color: var(--color-expense);
+  min-height: 1rem;
+}
+
+.form-error {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-expense);
+}
+
+/* Type Toggle */
+
+.type-toggle {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid rgba(100, 116, 139, 0.3);
+}
+
+.type-btn {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  background-color: var(--color-bg);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.type-btn.active[data-type="expense"] {
+  background-color: var(--color-expense);
+  color: #fff;
+}
+
+.type-btn.active[data-type="income"] {
+  background-color: var(--color-income);
+  color: #fff;
+}
+
+/* Buttons */
+
+.btn-primary {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  display: inline-block;
+  padding: 0.625rem 1rem;
+  border: 1.5px solid var(--color-accent);
+  color: var(--color-accent);
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.btn-danger {
+  display: inline-block;
+  padding: 0.625rem 1rem;
+  background-color: var(--color-expense);
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: opacity 0.2s;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* ------------------------------------------------------------
+   10. Recent Transactions
+   ------------------------------------------------------------ */
+
+.recent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.see-all-btn {
+  font-size: 0.875rem;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.recent-list,
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.15);
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.transaction-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transaction-meta {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.transaction-amount {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.transaction-amount.income {
+  color: var(--color-income);
+}
+
+.transaction-amount.expense {
+  color: var(--color-expense);
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(37, 99, 235, 0.12);
+  color: var(--color-accent);
+}
+
+.delete-btn {
+  padding: 0.375rem 0.5rem;
+  border-radius: 6px;
+  color: var(--color-expense);
+  font-size: 0.875rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 1.5rem 0;
+  font-size: 0.9375rem;
+}
+
+/* ------------------------------------------------------------
+   11. Search / Filter Bar
+   ------------------------------------------------------------ */
+
+.search-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.search-filter-bar input,
+.search-filter-bar select {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Scrollable transaction list */
+.transaction-list {
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+/* ------------------------------------------------------------
+   12. Charts
+   ------------------------------------------------------------ */
+
+.donut-chart-container canvas,
+.analytics-donut canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 300px;
+}
+
+.analytics-donut canvas {
+  max-width: 100%;
+}
+
+.chart-empty-state {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 2rem 0;
+  font-size: 0.9375rem;
+}
+
+.chart-detail-label {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------
+   13. Budget Summary Card
+   ------------------------------------------------------------ */
+
+.budget-progress-bar-track {
+  background-color: rgba(100, 116, 139, 0.2);
+  border-radius: 9999px;
+  height: 10px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.budget-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.budget-over-label {
+  font-size: 0.875rem;
+  color: var(--color-expense);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------
+   14. Bottom Navigation
+   ------------------------------------------------------------ */
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0;
+  color: var(--color-muted);
+  font-size: 0.6875rem;
+  min-height: 56px;
+  transition: color 0.2s;
+}
+
+.nav-item.active {
+  color: var(--color-accent);
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.nav-label {
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------
+   15. Toast Notification
+   ------------------------------------------------------------ */
+
+.toast-container {
+  position: fixed;
+  bottom: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: calc(100% - 2rem);
+  max-width: 480px;
+}
+
+.toast {
+  background-color: var(--color-surface);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 0.9375rem;
+}
+
+.toast-undo-btn {
+  font-weight: 700;
+  color: var(--color-accent);
+  font-size: 0.9375rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--color-accent);
+  width: 100%;
+  transform-origin: left;
+  animation: toast-progress-shrink 5s linear forwards;
+}
+
+@keyframes toast-progress-shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* ------------------------------------------------------------
+   16. Modal
+   ------------------------------------------------------------ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-box {
+  background-color: var(--color-surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-box h2 {
+  font-size: 1.125rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-box p {
+  font-size: 0.9375rem;
+  color: var(--color-muted);
+  margin-bottom: 1.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------------------
+   17. Avatar Selector
+   ------------------------------------------------------------ */
+
+.avatar-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.avatar-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  background-color: var(--color-bg);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.avatar-option.selected,
+.avatar-option:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+/* ------------------------------------------------------------
+   18. Data Actions
+   ------------------------------------------------------------ */
+
+.data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ------------------------------------------------------------
+   19. Month-over-Month Comparison
+   ------------------------------------------------------------ */
+
+.mom-cards {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.mom-card {
+  flex: 1;
+  background-color: var(--color-bg);
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.mom-card-label {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  margin-bottom: 0.25rem;
+}
+
+.mom-card-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.mom-change {
+  font-size: 0.875rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.mom-change.increase {
+  color: var(--color-expense);
+}
+
+.mom-change.decrease {
+  color: var(--color-income);
+}
+
+.top-categories-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 0.5rem;
+}
+
+.top-category-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.375rem 0;
+  font-size: 0.9375rem;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.15);
+}
+
+/* ------------------------------------------------------------
+   20. Per-Category Budget Inputs
+   ------------------------------------------------------------ */
+
+.per-category-budget-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.per-category-budget-item label {
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+.per-category-budget-item input {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------
+   21. Section Headings
+   ------------------------------------------------------------ */
+
+.card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.card h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-muted);
+}
+
+/* ------------------------------------------------------------
+   22. Responsive Layout
+   ------------------------------------------------------------ */
+
+/* Mobile (< 768px) — default: already mobile-first above */
+@media (max-width: 767px) {
+  /* Ensure all interactive elements in header and bottom-nav
+     are at least 44x44 CSS px (tap targets) */
+  .theme-switcher,
+  .nav-item,
+  .delete-btn,
+  .toast-undo-btn,
+  .type-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Desktop (>= 768px) */
+@media (min-width: 768px) {
+  .app-header {
+    /* Single non-wrapping row, already flex row */
+    flex-wrap: nowrap;
+  }
+
+  .app-main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 5rem;
+  }
+
+  .bottom-nav {
+    /* Full-width, equal-width tab items — already flex with flex:1 on each item */
+  }
+
+  .modal-overlay {
+    align-items: center;
+  }
+
+  .donut-chart-container canvas {
+    max-width: 360px;
+  }
+}

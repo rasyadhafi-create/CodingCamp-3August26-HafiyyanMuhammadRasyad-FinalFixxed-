@@ -6,17 +6,17 @@ Implement the Spenchart SPA as three files (`index.html`, `css/styles.css`, `js/
 
 ## Tasks
 
-- [ ] 1. Project scaffolding and file structure
+- [x] 1. Project scaffolding and file structure
   - Create `index.html` at repo root with HTML5 boilerplate, Chart.js CDN `<script>` tag, `<link>` to `css/styles.css`, and `<script>` to `js/script.js`
   - Create `css/styles.css` with reset, CSS custom property tokens (`--color-bg`, `--color-surface`, `--color-text`, `--color-muted`, `--color-accent`, `--color-income`, `--color-warning`, `--color-expense`) under `[data-theme="light"]` and `[data-theme="dark"]` selectors
   - Create `js/script.js` with module namespace stubs (`StorageModule`, `StateModule`, `RouterModule`, `ThemeModule`, `ValidatorModule`, `TransactionModule`, `FilterModule`, `SortModule`, `BudgetModule`, `ChartModule`, `ToastModule`, `DataManagerModule`, `ProfileModule`, `CurrencyModule`, `RenderModule`)
   - Create `tests/` directory with `package.json` (vitest + fast-check, pinned versions), `vitest.config.js`, and `tests/shim.js` test adapter that imports pure functions from `js/script.js`
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 2. StorageModule and StateModule
-  - [ ] 2.1 Implement `StorageModule` with `load(key)`, `save(key, value)`, `remove(key)`, and `clearAll()` — all keys namespaced under `spenchart_`, all writes wrapped in try/catch for `QuotaExceededError`
+- [x] 2. StorageModule and StateModule
+  - [x] 2.1 Implement `StorageModule` with `load(key)`, `save(key, value)`, `remove(key)`, and `clearAll()` — all keys namespaced under `spenchart_`, all writes wrapped in try/catch for `QuotaExceededError`
     - _Requirements: 1.4_
-  - [ ] 2.2 Implement `StateModule` holding in-memory app state (transactions array, budgets object, categories array, profile object, currency string, theme string) with `init()` that hydrates from `StorageModule` and falls back to safe defaults
+  - [x] 2.2 Implement `StateModule` holding in-memory app state (transactions array, budgets object, categories array, profile object, currency string, theme string) with `init()` that hydrates from `StorageModule` and falls back to safe defaults
     - _Requirements: 1.4, 3.8, 3.9, 17.1_
 
 - [ ] 3. SPA routing — RouterModule
