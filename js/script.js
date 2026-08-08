@@ -119,6 +119,7 @@ const RouterModule = {
     this.currentTab = tabId;
     if (tabId === "transactions") RenderModule.renderTransactionList(TransactionModule.getAll());
     if (tabId === "analytics") RenderModule.renderAnalytics();
+    if (tabId === "settings") RenderModule.renderSettings();
   },
 
   init() {
@@ -1140,7 +1141,23 @@ const RenderModule = {
   },
 
   renderSettings() {
-    // Stub — implemented in tasks 19–22
+    if (typeof document === "undefined") return;
+
+    // Sync currency dropdown to current state
+    const currencySel = document.getElementById("currency-select");
+    if (currencySel) currencySel.value = StateModule.currency;
+
+    // Sync global budget input to current state
+    const budgetInput = document.getElementById("global-budget");
+    if (budgetInput) {
+      budgetInput.value = (StateModule.budgets.global != null && StateModule.budgets.global > 0)
+        ? StateModule.budgets.global
+        : "";
+    }
+
+    // Clear any stale inline error from a previous visit
+    const budgetErr = document.getElementById("error-global-budget");
+    if (budgetErr) budgetErr.textContent = "";
   },
 };
 
@@ -1288,6 +1305,58 @@ if (typeof document !== "undefined") {
     const seeAllBtn = document.getElementById("see-all-btn");
     if (seeAllBtn) {
       seeAllBtn.addEventListener("click", () => RouterModule.navigate("transactions"));
+    }
+
+    // ── Currency Selector ──────────────────────────────────────────────────
+    const currencySelect = document.getElementById("currency-select");
+    if (currencySelect) {
+      currencySelect.addEventListener("change", () => {
+        const code = currencySelect.value;
+        CurrencyModule.set(code); // persists + calls renderDashboard()
+        // Also re-render the full transaction list if it's currently visible
+        if (RouterModule.currentTab === "transactions") {
+          RenderModule.renderTransactionList(TransactionModule.getAll());
+        }
+        // Re-render analytics MoM/trend amounts if visible
+        if (RouterModule.currentTab === "analytics") {
+          RenderModule.renderAnalytics();
+        }
+      });
+    }
+
+    // ── Budget Manager ────────────────────────────────────────────────────
+    const saveBudgetBtn  = document.getElementById("save-budget-btn");
+    const globalBudgetIn = document.getElementById("global-budget");
+    const budgetErrEl    = document.getElementById("error-global-budget");
+
+    if (saveBudgetBtn && globalBudgetIn) {
+      saveBudgetBtn.addEventListener("click", () => {
+        // Clear previous inline error
+        if (budgetErrEl) budgetErrEl.textContent = "";
+
+        const raw = globalBudgetIn.value.trim();
+        const { valid, errors } = ValidatorModule.validateBudget(raw);
+
+        if (!valid) {
+          if (budgetErrEl) budgetErrEl.textContent = errors.budget || "Invalid budget value.";
+          return;
+        }
+
+        const budgetValue = parseFloat(raw);
+        StateModule.budgets.global = budgetValue;
+        try {
+          StorageModule.save("budgets", StateModule.budgets);
+        } catch (_e) {
+          if (budgetErrEl) budgetErrEl.textContent = "Could not save budget: storage quota exceeded.";
+          return;
+        }
+
+        // Re-render the Budget Summary Card on the Dashboard
+        RenderModule.renderBudgetSummaryCard();
+        // Also refresh the full dashboard so balance + donut stay in sync
+        RenderModule.renderDashboard();
+        ToastModule.show("Budget saved.");
+      });
     }
   });
 }
