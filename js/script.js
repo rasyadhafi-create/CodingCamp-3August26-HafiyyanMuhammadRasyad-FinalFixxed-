@@ -1468,24 +1468,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Click a nav item → auto-close sidebar after a brief delay
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!isDesktop()) return;
-      if (document.body.classList.contains('sidebar-open')) {
-        setTimeout(closeSidebar, 200);
-      }
-    });
-  });
+  // Click a nav item — keep sidebar open, only switch tab
+  // (sidebar closes only via close button)
 
-  // Click outside sidebar → close
-  document.addEventListener('click', (e) => {
-    if (!isDesktop()) return;
-    if (!document.body.classList.contains('sidebar-open')) return;
-    if (!bottomNav.contains(e.target)) {
-      closeSidebar();
-    }
-  });
+  // Click outside sidebar — no auto-close
+  // (sidebar closes only via close button)
 
   // On resize to mobile → remove sidebar-open class
   window.addEventListener('resize', () => {
