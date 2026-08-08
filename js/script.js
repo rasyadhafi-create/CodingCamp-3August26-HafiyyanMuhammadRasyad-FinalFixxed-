@@ -1437,38 +1437,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggle = document.getElementById('sidebar-toggle');
   const sidebarClose  = document.getElementById('sidebar-close');
 
-  // Persistent flag — survives re-renders
-  window.__sidebarOpen = false;
+  // Persistent flag
+  let sidebarOpen = false;
+  // Guard flag to prevent re-entrance
+  let applyingSidebar = false;
+
+  function applySidebar() {
+    if (applyingSidebar) return;
+    applyingSidebar = true;
+    if (sidebarOpen && isDesktop()) {
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+    applyingSidebar = false;
+  }
 
   function openSidebar() {
-    window.__sidebarOpen = true;
-    document.body.classList.add('sidebar-open');
+    sidebarOpen = true;
+    applySidebar();
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
   function closeSidebar() {
-    window.__sidebarOpen = false;
-    document.body.classList.remove('sidebar-open');
+    sidebarOpen = false;
+    applySidebar();
   }
 
-  function applySidebarState() {
-    if (window.__sidebarOpen && isDesktop()) {
-      document.body.classList.add('sidebar-open');
+  // MutationObserver: if anything removes sidebar-open while flag is true, re-add it
+  const observer = new MutationObserver(() => {
+    if (sidebarOpen && isDesktop() && !document.body.classList.contains('sidebar-open')) {
+      applySidebar();
     }
-  }
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-  // Click logo / brand → open sidebar
+  // Click logo → open
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', (e) => {
       if (!isDesktop()) return;
       if (e.target.closest('#sidebar-close')) return;
-      if (!window.__sidebarOpen) {
-        openSidebar();
-      }
+      if (!sidebarOpen) openSidebar();
     });
   }
 
-  // Click close chevron → close sidebar (manual only)
+  // Click close chevron → close (manual only)
   if (sidebarClose) {
     sidebarClose.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1476,20 +1489,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // On resize to mobile → remove sidebar-open class
+  // On resize
   window.addEventListener('resize', () => {
     if (!isDesktop()) {
       document.body.classList.remove('sidebar-open');
     } else {
-      applySidebarState();
+      applySidebar();
     }
   });
-
-  // Patch RouterModule.navigate to preserve sidebar state after tab switch
-  const _origNavigate = RouterModule.navigate.bind(RouterModule);
-  RouterModule.navigate = function(tabId) {
-    _origNavigate(tabId);
-    // Re-apply sidebar state after render
-    requestAnimationFrame(applySidebarState);
-  };
 });
