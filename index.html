@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Spenchart — personal expense and budget visualization" />
+  <link rel="preload" as="image" href="assets/splash-intro.png">
   <title>Spenchart</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
 
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <div id="splash-screen" style="position:fixed;inset:0;background-color:#ffffff;background-image:url('assets/splash-intro.png');background-size:contain;background-position:center;background-repeat:no-repeat;z-index:9999;transition:opacity 0.5s ease;"></div>
@@ -16,7 +18,7 @@
   <header class="app-header">
     <img src="assets/logo.png" alt="Spenchart Logo" class="app-logo" />
     <span class="app-name">Spenchart</span>
-    <button class="theme-switcher" id="theme-switcher" aria-label="Toggle theme">🌙</button>
+    <button class="theme-switcher" id="theme-switcher" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
     <div class="profile-avatar" id="profile-avatar">
       <img src="" alt="Profile avatar" id="avatar-img" onerror="this.style.display='none'; document.getElementById('avatar-fallback').style.display='flex';" />
       <span class="avatar-fallback" id="avatar-fallback" aria-hidden="true">S</span>
@@ -36,7 +38,7 @@
 
       <!-- Quick Add Form -->
       <div class="quick-add-form card" id="quick-add-form">
-        <h2>Add Transaction</h2>
+        <h2><i data-lucide="plus-circle"></i> Add Transaction</h2>
         <form id="transaction-form" novalidate>
           <div class="form-group">
             <label for="item-name">Item Name</label>
@@ -72,14 +74,14 @@
             <input type="text" id="custom-category" name="custom_category" maxlength="50" placeholder="Enter category name" />
             <span class="field-error" id="error-custom-category"></span>
           </div>
-          <button type="submit" class="btn-primary">Add Transaction</button>
+          <button type="submit" class="btn-primary"><i data-lucide="plus"></i> Add Transaction</button>
           <div class="form-error hidden" id="form-save-error"></div>
         </form>
       </div>
 
       <!-- Donut Chart -->
       <div class="donut-chart-container card" id="dashboard-donut-container">
-        <h2>Spending Breakdown</h2>
+        <h2><i data-lucide="pie-chart"></i> Spending Breakdown</h2>
         <canvas id="dashboard-donut-canvas" width="300" height="300"></canvas>
         <p class="chart-empty-state hidden" id="dashboard-donut-empty">No spending data available.</p>
         <div class="chart-detail-label hidden" id="dashboard-donut-detail"></div>
@@ -88,15 +90,15 @@
 
       <!-- Budget Summary Card -->
       <div class="budget-summary-card card hidden" id="budget-summary-card">
-        <h2>Monthly Budget</h2>
+        <h2><i data-lucide="dollar-sign"></i> Monthly Budget</h2>
         <div id="budget-summary-content"></div>
       </div>
 
       <!-- Recent Transactions Preview -->
       <div class="recent-transactions card" id="recent-transactions">
         <div class="recent-header">
-          <h2>Recent Transactions</h2>
-          <button class="see-all-btn" id="see-all-btn">See All</button>
+          <h2><i data-lucide="clock"></i> Recent Transactions</h2>
+          <button class="see-all-btn" id="see-all-btn"><i data-lucide="chevron-right"></i> See All</button>
         </div>
         <ul class="recent-list" id="recent-list">
           <li class="empty-state" id="recent-empty">No transactions recorded yet.</li>
@@ -132,19 +134,19 @@
     <!-- Analytics Tab -->
     <section id="tab-analytics" class="tab-section hidden">
       <div class="analytics-donut card">
-        <h2>Spending Breakdown</h2>
+        <h2><i data-lucide="pie-chart"></i> Spending Breakdown</h2>
         <canvas id="analytics-donut-canvas" width="300" height="300"></canvas>
         <p class="chart-empty-state hidden" id="analytics-donut-empty">No spending data available.</p>
         <div class="chart-detail-label hidden" id="analytics-donut-detail"></div>
         <div class="chart-legend" id="analytics-donut-legend"></div>
       </div>
       <div class="monthly-trend-chart card">
-        <h2>Monthly Spending Trend</h2>
+        <h2><i data-lucide="trending-up"></i> Monthly Spending Trend</h2>
         <canvas id="monthly-trend-canvas" width="600" height="260"></canvas>
         <p class="chart-empty-state hidden" id="monthly-trend-empty">No spending data available for this month.</p>
       </div>
       <div class="mom-comparison card" id="mom-comparison">
-        <h2>Month-over-Month</h2>
+        <h2><i data-lucide="repeat"></i> Month-over-Month</h2>
         <div id="mom-content"></div>
       </div>
     </section>
@@ -153,7 +155,7 @@
     <section id="tab-settings" class="tab-section hidden">
       <!-- Profile Section -->
       <div class="profile-section card">
-        <h2>Profile</h2>
+        <h2><i data-lucide="user"></i> Profile</h2>
         <div class="form-group">
           <label for="display-name">Display Name</label>
           <input type="text" id="display-name" maxlength="50" placeholder="Your name" />
@@ -165,13 +167,13 @@
             <!-- Avatar options populated by JS -->
           </div>
         </div>
-        <button class="btn-primary" id="save-profile-btn">Save Profile</button>
+        <button class="btn-primary" id="save-profile-btn"><i data-lucide="save"></i> Save Profile</button>
         <div class="form-error hidden" id="profile-save-error"></div>
       </div>
 
       <!-- Currency Section -->
       <div class="currency-section card">
-        <h2>Currency</h2>
+        <h2><i data-lucide="globe"></i> Currency</h2>
         <div class="form-group">
           <label for="currency-select">Select Currency</label>
           <select id="currency-select" aria-label="Select currency">
@@ -192,10 +194,10 @@
           <input type="number" id="global-budget" min="0.01" step="0.01" placeholder="0.00" />
           <span class="field-error" id="error-global-budget"></span>
         </div>
-        <button class="btn-primary" id="save-budget-btn">Save Budget</button>
+        <button class="btn-primary" id="save-budget-btn"><i data-lucide="save"></i> Save Budget</button>
         <div id="per-category-budgets"></div>
         <hr />
-        <h3>Add Custom Category</h3>
+        <h3><i data-lucide="tag"></i> Add Custom Category</h3>
         <div class="form-group">
           <label for="custom-category-name">Category Name</label>
           <input type="text" id="custom-category-name" maxlength="50" placeholder="e.g. Gym" />
@@ -205,19 +207,19 @@
           <label for="category-emoji">Emoji</label>
           <input type="text" id="category-emoji" maxlength="2" placeholder="🏋️" />
         </div>
-        <button class="btn-primary" id="save-category-btn">Add Category</button>
+        <button class="btn-primary" id="save-category-btn"><i data-lucide="plus"></i> Add Category</button>
         <div class="form-error hidden" id="category-save-error"></div>
       </div>
 
       <!-- Data Manager -->
       <div class="data-manager card">
-        <h2>Data Management</h2>
+        <h2><i data-lucide="database"></i> Data Management</h2>
         <div class="data-actions">
-          <button class="btn-secondary" id="export-json-btn">Backup Data (JSON)</button>
-          <label class="btn-secondary" for="import-json-input">Restore Data (JSON)</label>
+          <button class="btn-secondary" id="export-json-btn"><i data-lucide="download-cloud"></i> Backup Data (JSON)</button>
+          <label class="btn-secondary" for="import-json-input"><i data-lucide="upload-cloud"></i> Restore Data (JSON)</label>
           <input type="file" id="import-json-input" accept=".json" class="hidden" aria-label="Import JSON backup" />
-          <button class="btn-secondary" id="export-csv-btn">Export CSV</button>
-          <button class="btn-danger" id="reset-data-btn">Reset App Data</button>
+          <button class="btn-secondary" id="export-csv-btn"><i data-lucide="file-text"></i> Export CSV</button>
+          <button class="btn-danger" id="reset-data-btn"><i data-lucide="trash-2"></i> Reset App Data</button>
         </div>
         <div class="form-error hidden" id="data-manager-error"></div>
       </div>
@@ -227,32 +229,37 @@
 
   <!-- Bottom Navigation -->
   <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <button class="nav-item active" data-tab="dashboard" aria-label="Dashboard">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-label">Dashboard</span>
-    </button>
-    <button class="nav-item" data-tab="transactions" aria-label="Transactions">
-      <span class="nav-icon">📋</span>
-      <span class="nav-label">Transactions</span>
-    </button>
-    <button class="nav-item" data-tab="analytics" aria-label="Analytics">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Analytics</span>
-    </button>
-    <button class="nav-item" data-tab="settings" aria-label="Settings">
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-label">Settings</span>
-    </button>
-  </nav>
+  <!-- Sidebar branding (desktop only) -->
+  <div class="sidebar-brand">
+    <img src="assets/logo.png" alt="Spenchart Logo" class="sidebar-logo" />
+    <span class="sidebar-name">Spenchart</span>
+  </div>
+  <button class="nav-item active" data-tab="dashboard" aria-label="Dashboard">
+    <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+    <span class="nav-label">Dashboard</span>
+  </button>
+  <button class="nav-item" data-tab="transactions" aria-label="Transactions">
+    <span class="nav-icon"><i data-lucide="receipt"></i></span>
+    <span class="nav-label">Transactions</span>
+  </button>
+  <button class="nav-item" data-tab="analytics" aria-label="Analytics">
+    <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
+    <span class="nav-label">Analytics</span>
+  </button>
+  <button class="nav-item" data-tab="settings" aria-label="Settings">
+    <span class="nav-icon"><i data-lucide="settings"></i></span>
+    <span class="nav-label">Settings</span>
+  </button>
+</nav>
 
   <!-- Confirmation Modal (Reset) -->
   <div class="modal-overlay hidden" id="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
     <div class="modal-box">
-      <h2 id="reset-modal-title">Reset App Data</h2>
+      <h2 id="reset-modal-title"><i data-lucide="alert-circle"></i> Reset App Data</h2>
       <p>This will permanently delete <strong>all</strong> your transactions, budgets, categories, profile, and settings. This action cannot be undone.</p>
       <div class="modal-actions">
-        <button class="btn-secondary" id="reset-cancel-btn">Cancel</button>
-        <button class="btn-danger" id="reset-confirm-btn">Yes, Delete Everything</button>
+        <button class="btn-secondary" id="reset-cancel-btn"><i data-lucide="x"></i> Cancel</button>
+        <button class="btn-danger" id="reset-confirm-btn"><i data-lucide="trash-2"></i> Yes, Delete Everything</button>
       </div>
     </div>
   </div>

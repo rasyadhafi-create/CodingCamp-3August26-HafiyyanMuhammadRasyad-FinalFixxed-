@@ -145,9 +145,12 @@ const ThemeModule = {
     StateModule.theme = validTheme;
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", validTheme);
-      // Update theme toggle button icon
+      // Update theme toggle button icon (use Lucide icons)
       const btn = document.getElementById("theme-switcher");
-      if (btn) btn.textContent = validTheme === "dark" ? "☀️" : "🌙";
+      if (btn) {
+        btn.innerHTML = validTheme === "dark" ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
     }
     StorageModule.save("theme", validTheme);
     // Re-render charts with new theme colors
@@ -920,6 +923,10 @@ const RenderModule = {
       const li = this._buildTransactionItem(t, false);
       list.appendChild(li);
     });
+    // initialize lucide icons for any injected icon markup
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   renderBudgetSummaryCard() {
@@ -986,6 +993,10 @@ const RenderModule = {
       const li = this._buildTransactionItem(t, true);
       list.appendChild(li);
     });
+    // initialize lucide icons for dynamically injected transaction buttons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   _buildTransactionItem(t, showDelete) {
@@ -1006,7 +1017,7 @@ const RenderModule = {
         </div>
       </div>
       <span class="transaction-amount ${amountClass}">${sign}${CurrencyModule.format(t.amount, StateModule.currency)}</span>
-      ${showDelete ? `<button class="delete-btn" data-id="${t.id}" aria-label="Delete ${this._escapeHTML(t.item_name)}">🗑</button>` : ""}
+      ${showDelete ? `<button class="delete-btn" data-id="${t.id}" aria-label="Delete ${this._escapeHTML(t.item_name)}"><i data-lucide="trash-2"></i></button>` : ""}
     `;
     return li;
   },
@@ -1410,4 +1421,11 @@ window.addEventListener('load', () => {
       setTimeout(() => splash.remove(), 500);
     }
   }, 1000); // splash muncul 1 detik, terus fade out 0.5 detik
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Render semua lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 });
