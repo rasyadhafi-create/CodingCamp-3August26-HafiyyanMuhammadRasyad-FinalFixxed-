@@ -230,9 +230,12 @@
   <!-- Bottom Navigation -->
   <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
   <!-- Sidebar branding (desktop only) -->
-  <div class="sidebar-brand">
+  <div class="sidebar-brand" id="sidebar-toggle">
     <img src="assets/logo.png" alt="Spenchart Logo" class="sidebar-logo" />
     <span class="sidebar-name">Spenchart</span>
+    <button class="sidebar-close-btn" id="sidebar-close" aria-label="Collapse sidebar">
+      <i data-lucide="chevron-left"></i>
+    </button>
   </div>
   <button class="nav-item active" data-tab="dashboard" aria-label="Dashboard">
     <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>

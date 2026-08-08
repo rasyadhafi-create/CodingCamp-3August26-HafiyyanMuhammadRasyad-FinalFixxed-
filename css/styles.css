@@ -1,5 +1,5 @@
 /* ============================================================
-   Spenchart — Main Stylesheet
+   Spenchart â€” Main Stylesheet
    ============================================================ */
 
 /* ------------------------------------------------------------
@@ -30,11 +30,11 @@
 
 /* ------------------------------------------------------------
    Dark mode contrast fixes
-   Cyan (#22D3EE) is a light colour — swap button text to dark
+   Cyan (#22D3EE) is a light colour â€” swap button text to dark
    so it stays legible against the bright background.
    ------------------------------------------------------------ */
 [data-theme="dark"] .btn-primary {
-  /* Cyan bg is light → use very dark text for legibility */
+  /* Cyan bg is light â†’ use very dark text for legibility */
   color: #0F172A;
 }
 
@@ -48,12 +48,12 @@
 }
 
 [data-theme="dark"] .type-btn.active[data-type="income"] {
-  /* Green bg is mid-tone in dark — keep white but ensure legibility */
+  /* Green bg is mid-tone in dark â€” keep white but ensure legibility */
   color: #fff;
 }
 
 [data-theme="dark"] .toast-undo-btn {
-  /* Cyan text on dark surface — fine, no change needed */
+  /* Cyan text on dark surface â€” fine, no change needed */
   color: var(--color-accent);
 }
 
@@ -943,7 +943,7 @@ label.btn-secondary i {
   stroke-width: 2;
 }
 
-/* Mobile (< 768px) — default: already mobile-first above */
+/* Mobile (< 768px) â€” default: already mobile-first above */
 @media (max-width: 767px) {
   /* Ensure all interactive elements in header and bottom-nav
      are at least 44x44 CSS px (tap targets) */
@@ -959,103 +959,195 @@ label.btn-secondary i {
 
 /* ============================================================
    Desktop Layout (>= 900px)
-   Sidebar navigation + wide content area
+   Collapsible icon-only sidebar â€” expands to 220px on open
    ============================================================ */
 @media (min-width: 900px) {
-  /* --- Root layout becomes a two-column grid --- */
+
+  /* --- Root grid â€” collapsed by default (64px sidebar) --- */
   body {
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 64px 1fr;
     grid-template-rows: auto 1fr;
     grid-template-areas:
       "sidebar header"
       "sidebar main";
     height: 100vh;
     overflow: hidden;
+    transition: grid-template-columns 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* --- Header spans the right column only --- */
+  body.sidebar-open {
+    grid-template-columns: 220px 1fr;
+  }
+
+  /* --- Header --- */
   .app-header {
     grid-area: header;
     position: sticky;
     top: 0;
     z-index: 100;
+    height: 58px;
     border-bottom: 1px solid rgba(100, 116, 139, 0.2);
-    padding: 0.875rem 2rem;
+    padding: 0 2rem;
   }
 
-  /* --- Main content scrolls independently --- */
+  /* Push theme toggle + avatar to far right */
+  .app-header .theme-switcher {
+    margin-left: auto;
+  }
+
+  /* --- Main content --- */
   .app-main {
     grid-area: main;
     overflow-y: auto;
-    padding: 2rem 2.5rem;
-    padding-bottom: 2rem;
+    padding: 2rem 2.5rem 2rem;
     height: calc(100vh - 58px);
   }
 
-  /* --- Bottom nav becomes a left sidebar --- */
+  /* --- Sidebar nav shell --- */
   .bottom-nav {
     grid-area: sidebar;
     position: static;
     flex-direction: column;
+    align-items: stretch;
     height: 100vh;
-    width: 220px;
+    width: 64px;
     border-top: none;
     border-right: 1px solid rgba(100, 116, 139, 0.2);
-    padding: 1.5rem 0;
+    padding: 1.25rem 0 1.5rem;
     gap: 0.25rem;
-    overflow-y: auto;
+    overflow: hidden;          /* clips labels during collapse */
     background-color: var(--color-surface);
-  }
-
-  /* Sidebar branding block */
-  .sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0 1.25rem 1.25rem;
-    border-bottom: 1px solid rgba(100, 116, 139, 0.15);
-    margin-bottom: 0.75rem;
+    transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
   }
 
+  body.sidebar-open .bottom-nav {
+    width: 220px;
+  }
+
+  /* --- Sidebar brand row --- */
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0.25rem 0 1rem 0.7rem;
+    margin: 0 0.5rem 0.25rem;
+    border-bottom: none;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    width: calc(100% - 1rem);
+    transition: gap 0.32s ease, padding 0.32s ease, justify-content 0.1s;
+  }
+
+  body.sidebar-open .sidebar-brand {
+    justify-content: flex-start;
+    gap: 0.625rem;
+    padding: 0.25rem 1.25rem 1rem;
+    margin: 0 0.75rem 0.25rem;
+  }
+
   .sidebar-logo {
-    width: 30px;
-    height: 30px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
     flex-shrink: 0;
   }
 
   .sidebar-name {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: var(--color-accent);
     letter-spacing: -0.02em;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease;
   }
 
-  /* Push theme toggle + avatar to the right in the header */
-  .app-header .theme-switcher {
+  body.sidebar-open .sidebar-name {
+    max-width: 120px;
+    opacity: 1;
+  }
+
+  /* Close chevron button â€” visible only when expanded */
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    color: var(--color-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
     margin-left: auto;
+    transition: max-width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease,
+                background-color 0.15s,
+                color 0.15s;
   }
 
-  /* --- Nav items become full-width rows in the sidebar --- */
+  body.sidebar-open .sidebar-close-btn {
+    max-width: 36px;
+    opacity: 1;
+  }
+
+  .sidebar-close-btn:hover {
+    background-color: rgba(100, 116, 139, 0.15);
+    color: var(--color-text);
+  }
+
+  /* --- Nav items --- */
   .nav-item {
-    flex: none;               /* ← prevent stretching across full height */
+    flex: none;
     flex-direction: row;
-    justify-content: flex-start;
-    gap: 0.875rem;
-    padding: 0.75rem 1.25rem;
+    justify-content: center;   /* centered icon when collapsed */
+    gap: 0;
+    padding: 0.75rem 0;
     border-radius: 10px;
-    margin: 0 0.75rem;
-    width: calc(100% - 1.5rem);
+    margin: 0 0.5rem;
+    width: calc(100% - 1rem);
     font-size: 0.9375rem;
     font-weight: 500;
     min-height: unset;
-    transition: background-color 0.15s, color 0.15s;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: background-color 0.15s,
+                color 0.15s,
+                gap 0.32s ease,
+                padding 0.32s ease,
+                justify-content 0.1s;
+    position: relative;        /* for tooltip */
+  }
+
+  body.sidebar-open .nav-item {
+    justify-content: flex-start;
+    gap: 0.875rem;
+    padding: 0.75rem 1.25rem;
+    margin: 0 0.75rem;
+    width: calc(100% - 1.5rem);
   }
 
   .nav-item:hover {
     background-color: rgba(100, 116, 139, 0.1);
+  }
+
+  /* Push Settings to bottom of sidebar */
+  .nav-item[data-tab="settings"] {
+    margin-top: auto;
+  }
+
+  body.sidebar-open .nav-item[data-tab="settings"] {
+    margin-top: auto;
   }
 
   .nav-item.active {
@@ -1067,23 +1159,74 @@ label.btn-secondary i {
     background-color: rgba(34, 211, 238, 0.12);
   }
 
-  .nav-icon {
-    font-size: 1.1rem;
-    flex-shrink: 0;
-  }
-
+  /* Nav label â€” hidden (0 width) when collapsed */
   .nav-label {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
     font-size: 0.9375rem;
+    transition: max-width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.22s ease;
   }
 
-  /* --- Toast sits above the footer (no bottom-nav offset) --- */
+  body.sidebar-open .nav-label {
+    max-width: 140px;
+    opacity: 1;
+  }
+
+  /* Nav icon sizing */
+  .nav-icon {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Tooltip on collapsed icons */
+  .nav-item::after {
+    content: attr(aria-label);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--color-text);
+    color: var(--color-surface);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 200;
+  }
+
+  /* Only show tooltip when sidebar is collapsed */
+  body:not(.sidebar-open) .nav-item:hover::after {
+    opacity: 1;
+  }
+
+  /* --- Toast positioning (accounts for narrow collapsed sidebar) --- */
   .toast-container {
     bottom: 2rem;
     left: 50%;
-    transform: translateX(calc(-50% + 110px)); /* account for sidebar */
+    transform: translateX(calc(-50% + 32px));
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* --- Dashboard: 2-column grid for cards --- */
+  body.sidebar-open .toast-container {
+    transform: translateX(calc(-50% + 110px));
+  }
+
+  /* --- Dashboard: 2-column grid --- */
   #tab-dashboard {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1096,19 +1239,13 @@ label.btn-secondary i {
     align-items: start;
   }
 
-  #balance-card      { grid-area: balance; }
-  #quick-add-form    { grid-area: quickadd; }
-  #dashboard-donut-container { grid-area: donut; }
-  #budget-summary-card       { grid-area: budget; }
-  #recent-transactions       { grid-area: recent; }
+  #balance-card               { grid-area: balance; }
+  #quick-add-form             { grid-area: quickadd; }
+  #dashboard-donut-container  { grid-area: donut; }
+  #budget-summary-card        { grid-area: budget; }
+  #recent-transactions        { grid-area: recent; }
 
-  /* If budget card is hidden, donut expands */
-  #budget-summary-card.hidden + #recent-transactions,
-  #budget-summary-card.hidden ~ #recent-transactions {
-    grid-area: recent;
-  }
-
-  /* --- Analytics: 2-column grid with explicit placement --- */
+  /* --- Analytics: explicit 2-column placement --- */
   #tab-analytics {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1116,25 +1253,9 @@ label.btn-secondary i {
     align-items: start;
   }
 
-  #tab-analytics .analytics-donut    { grid-column: 1; grid-row: 1; }
-  #tab-analytics .mom-comparison      { grid-column: 2; grid-row: 1; }
-  #tab-analytics .monthly-trend-chart { grid-column: 1 / -1; grid-row: 2; }
-
-  /* --- Widen balance amount on desktop --- */
-  .balance-amount {
-    font-size: 2.5rem;
-  }
-
-  /* --- Donut chart max size --- */
-  .donut-chart-container canvas,
-  .analytics-donut canvas {
-    max-width: 260px;
-  }
-
-  /* --- Transaction list height adjustment --- */
-  .transaction-list {
-    max-height: calc(100vh - 220px);
-  }
+  #tab-analytics .analytics-donut     { grid-column: 1; grid-row: 1; }
+  #tab-analytics .mom-comparison       { grid-column: 2; grid-row: 1; }
+  #tab-analytics .monthly-trend-chart  { grid-column: 1 / -1; grid-row: 2; }
 
   /* --- Settings: 2-column grid --- */
   #tab-settings {
@@ -1144,19 +1265,34 @@ label.btn-secondary i {
     align-items: start;
   }
 
-  #tab-settings .profile-section  { grid-column: 1; grid-row: 1; }
-  #tab-settings .currency-section { grid-column: 2; grid-row: 1; }
+  #tab-settings .profile-section     { grid-column: 1; grid-row: 1; }
+  #tab-settings .currency-section    { grid-column: 2; grid-row: 1; }
   #tab-settings .budget-category-mgr { grid-column: 1; grid-row: 2; }
-  #tab-settings .data-manager     { grid-column: 2; grid-row: 2; }
+  #tab-settings .data-manager        { grid-column: 2; grid-row: 2; }
 
+  /* --- Balance amount --- */
+  .balance-amount { font-size: 2.5rem; }
+
+  /* --- Donut chart size --- */
+  .donut-chart-container canvas,
+  .analytics-donut canvas { max-width: 260px; }
+
+  /* --- Transaction list --- */
+  .transaction-list { max-height: calc(100vh - 220px); }
+
+  /* --- Modal offset for sidebar --- */
   .modal-overlay {
     align-items: center;
-    /* Push modal to account for sidebar */
+    padding-left: 64px; /* collapsed sidebar width */
+    transition: padding-left 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body.sidebar-open .modal-overlay {
     padding-left: 220px;
   }
 }
 
-/* Mid-range: tablet landscape (768px – 899px) */
+/* Mid-range: tablet landscape (768px â€“ 899px) */
 @media (min-width: 768px) and (max-width: 899px) {
   .app-main {
     max-width: 100%;
@@ -1175,9 +1311,9 @@ label.btn-secondary i {
     align-items: start;
   }
 
-  #balance-card             { grid-column: 1 / -1; }
-  #recent-transactions      { grid-column: 1 / -1; }
-  #budget-summary-card      { grid-column: 2; }
+  #balance-card              { grid-column: 1 / -1; }
+  #recent-transactions       { grid-column: 1 / -1; }
+  #budget-summary-card       { grid-column: 2; }
   #dashboard-donut-container { grid-column: 2; }
 
   #tab-analytics {
@@ -1198,60 +1334,32 @@ label.btn-secondary i {
 }
 
 /* ============================================================
-   23. Desktop Header Polish
-   Sidebar shows the branding — hide logo + name from the
-   top header on desktop to avoid duplication.
+   23. Desktop Header & Sidebar Polish
    ============================================================ */
 
-/* Sidebar-brand hidden on mobile (bottom-nav mode) */
+/* Hide sidebar-brand on mobile (bottom-nav mode) */
 @media (max-width: 899px) {
-  .sidebar-brand {
-    display: none;
-  }
+  .sidebar-brand,
+  .sidebar-close-btn { display: none; }
 }
 
 @media (min-width: 900px) {
+  /* Hide header logo + name (sidebar shows branding) */
   .app-header .app-logo,
-  .app-header .app-name {
-    display: none;
-  }
+  .app-header .app-name { display: none; }
 
-  /* Give the header a consistent height */
-  .app-header {
-    height: 58px;
-  }
+  .app-header { height: 58px; }
 
-  /* Balance card — larger and more prominent on desktop */
-  .hero-balance-card {
-    padding: 2rem 1.5rem;
-  }
+  .hero-balance-card { padding: 2rem 1.5rem; }
 
-  /* Ensure tab sections don't overflow weirdly */
-  .tab-section {
-    max-width: 100%;
-  }
+  .tab-section { max-width: 100%; }
 
-  /* Card padding increase on desktop */
-  .card {
-    padding: 1.5rem;
-  }
+  .card { padding: 1.5rem; }
 
-  /* Per-category budget inputs wider */
-  .per-category-budget-item input {
-    width: 160px;
-  }
+  .per-category-budget-item input { width: 160px; }
 
-  /* Search/filter bar: don't wrap on desktop */
-  .search-filter-bar {
-    flex-wrap: nowrap;
-  }
+  .search-filter-bar { flex-wrap: nowrap; }
 
-  .search-filter-bar input {
-    flex: 2;
-  }
-
-  .search-filter-bar select {
-    flex: 1;
-    min-width: 140px;
-  }
+  .search-filter-bar input  { flex: 2; }
+  .search-filter-bar select { flex: 1; min-width: 140px; }
 }

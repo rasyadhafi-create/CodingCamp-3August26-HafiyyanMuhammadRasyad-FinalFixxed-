@@ -1428,4 +1428,69 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
+
+  // ============================================================
+  // Collapsible Sidebar Logic (desktop only)
+  // ============================================================
+  const isDesktop = () => window.matchMedia('(min-width: 900px)').matches;
+
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebarClose  = document.getElementById('sidebar-close');
+  const bottomNav     = document.querySelector('.bottom-nav');
+
+  function openSidebar() {
+    document.body.classList.add('sidebar-open');
+    // Re-render lucide icons for the chevron
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  function closeSidebar() {
+    document.body.classList.remove('sidebar-open');
+  }
+
+  // Click logo / brand → open sidebar
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', (e) => {
+      if (!isDesktop()) return;
+      // If close button was clicked, don't re-open
+      if (e.target.closest('#sidebar-close')) return;
+      if (!document.body.classList.contains('sidebar-open')) {
+        openSidebar();
+      }
+    });
+  }
+
+  // Click close chevron → close sidebar
+  if (sidebarClose) {
+    sidebarClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeSidebar();
+    });
+  }
+
+  // Click a nav item → auto-close sidebar after a brief delay
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!isDesktop()) return;
+      if (document.body.classList.contains('sidebar-open')) {
+        setTimeout(closeSidebar, 200);
+      }
+    });
+  });
+
+  // Click outside sidebar → close
+  document.addEventListener('click', (e) => {
+    if (!isDesktop()) return;
+    if (!document.body.classList.contains('sidebar-open')) return;
+    if (!bottomNav.contains(e.target)) {
+      closeSidebar();
+    }
+  });
+
+  // On resize to mobile → remove sidebar-open class
+  window.addEventListener('resize', () => {
+    if (!isDesktop()) {
+      document.body.classList.remove('sidebar-open');
+    }
+  });
 });
