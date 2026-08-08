@@ -34,6 +34,8 @@ cd tests && npm install && npm test
 
 See .kiro/specs/spenchart/ for requirements.md, design.md, and tasks.md.
 
+🌐 **Live Demo:** "https://rasyadhafi-create.github.io/CodingCamp-3August26-HafiyyanMuhammadRasyad-FinalFixxed-/"
+
 ---
 
 Revou Coding Camp Mini Project - Hafiyyan Muhammad Rasyad
