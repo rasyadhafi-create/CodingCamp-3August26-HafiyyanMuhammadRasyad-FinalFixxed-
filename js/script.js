@@ -1436,31 +1436,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sidebarToggle = document.getElementById('sidebar-toggle');
   const sidebarClose  = document.getElementById('sidebar-close');
-  const bottomNav     = document.querySelector('.bottom-nav');
+
+  // Persistent flag — survives re-renders
+  window.__sidebarOpen = false;
 
   function openSidebar() {
+    window.__sidebarOpen = true;
     document.body.classList.add('sidebar-open');
-    // Re-render lucide icons for the chevron
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
   function closeSidebar() {
+    window.__sidebarOpen = false;
     document.body.classList.remove('sidebar-open');
+  }
+
+  function applySidebarState() {
+    if (window.__sidebarOpen && isDesktop()) {
+      document.body.classList.add('sidebar-open');
+    }
   }
 
   // Click logo / brand → open sidebar
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', (e) => {
       if (!isDesktop()) return;
-      // If close button was clicked, don't re-open
       if (e.target.closest('#sidebar-close')) return;
-      if (!document.body.classList.contains('sidebar-open')) {
+      if (!window.__sidebarOpen) {
         openSidebar();
       }
     });
   }
 
-  // Click close chevron → close sidebar
+  // Click close chevron → close sidebar (manual only)
   if (sidebarClose) {
     sidebarClose.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1468,16 +1476,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Click a nav item — keep sidebar open, only switch tab
-  // (sidebar closes only via close button)
-
-  // Click outside sidebar — no auto-close
-  // (sidebar closes only via close button)
-
   // On resize to mobile → remove sidebar-open class
   window.addEventListener('resize', () => {
     if (!isDesktop()) {
       document.body.classList.remove('sidebar-open');
+    } else {
+      applySidebarState();
     }
   });
+
+  // Patch RouterModule.navigate to preserve sidebar state after tab switch
+  const _origNavigate = RouterModule.navigate.bind(RouterModule);
+  RouterModule.navigate = function(tabId) {
+    _origNavigate(tabId);
+    // Re-apply sidebar state after render
+    requestAnimationFrame(applySidebarState);
+  };
 });
