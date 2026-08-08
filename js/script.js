@@ -544,6 +544,22 @@ const ChartModule = {
     });
   },
 
+  renderLegend(legendId, categoryData) {
+    if (typeof document === "undefined") return;
+    const el = document.getElementById(legendId);
+    if (!el) return;
+    if (!categoryData || !categoryData.length) {
+      el.innerHTML = "";
+      return;
+    }
+    el.innerHTML = categoryData.map((d) =>
+      `<span class="chart-legend-item">` +
+        `<span class="chart-legend-dot" style="background-color:${d.color};"></span>` +
+        `<span class="chart-legend-name">${RenderModule._escapeHTML ? RenderModule._escapeHTML(d.label) : d.label}</span>` +
+      `</span>`
+    ).join("");
+  },
+
   rerenderAll() {
     // Stub: will be fully implemented when RenderModule is wired up
   },
@@ -949,6 +965,7 @@ const RenderModule = {
       canvas.classList.remove("hidden");
       if (empty) empty.classList.add("hidden");
       ChartModule.renderDonut("dashboard-donut-canvas", categoryData);
+      ChartModule.renderLegend("dashboard-donut-legend", categoryData);
     }
   },
 
@@ -1028,6 +1045,7 @@ const RenderModule = {
       canvas.classList.remove("hidden");
       if (empty) empty.classList.add("hidden");
       ChartModule.renderDonut("analytics-donut-canvas", categoryData);
+      ChartModule.renderLegend("analytics-donut-legend", categoryData);
     }
   },
 
