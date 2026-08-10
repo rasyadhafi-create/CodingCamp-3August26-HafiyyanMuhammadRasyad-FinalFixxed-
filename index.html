@@ -8,6 +8,11 @@
   <title>Spenchart</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
 
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <link rel="stylesheet" href="css/styles.css" />
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -31,9 +36,9 @@
     <!-- Dashboard Tab -->
     <section id="tab-dashboard" class="tab-section">
       <!-- Hero Balance Card -->
-      <div class="hero-balance-card" id="balance-card">
+      <div class="hero-balance-card card" id="balance-card">
         <p class="balance-label">Current Balance</p>
-        <p class="balance-amount" id="balance-amount">Rp 0.00</p>
+        <p class="balance-amount numeric-tabular" id="balance-amount">Rp 0.00</p>
       </div>
 
       <!-- Quick Add Form -->
@@ -47,7 +52,7 @@
           </div>
           <div class="form-group">
             <label for="amount">Amount</label>
-            <input type="number" id="amount" name="amount" min="0.01" step="0.01" placeholder="0.00" />
+            <input type="number" id="amount" name="amount" min="0.01" step="0.01" placeholder="0.00" class="numeric-tabular" />
             <span class="field-error" id="error-amount"></span>
           </div>
           <div class="form-group">
@@ -100,9 +105,18 @@
           <h2><i data-lucide="clock"></i> Recent Transactions</h2>
           <button class="see-all-btn" id="see-all-btn"><i data-lucide="chevron-right"></i> See All</button>
         </div>
-        <ul class="recent-list" id="recent-list">
-          <li class="empty-state" id="recent-empty">No transactions recorded yet.</li>
-        </ul>
+        <div class="transaction-table-container">
+          <div class="transaction-table-header">
+            <span class="col-item">Item</span>
+            <span class="col-category">Category</span>
+            <span class="col-date">Date</span>
+            <span class="col-amount">Amount</span>
+            <span class="col-action"></span>
+          </div>
+          <ul class="recent-list" id="recent-list">
+            <li class="empty-state" id="recent-empty">No transactions recorded yet.</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -126,9 +140,18 @@
         </select>
       </div>
       <!-- Transaction List -->
-      <ul class="transaction-list" id="transaction-list" role="list">
-        <li class="empty-state" id="transaction-list-empty">No transactions recorded yet.</li>
-      </ul>
+      <div class="transaction-table-container card">
+        <div class="transaction-table-header">
+          <span class="col-item">Item</span>
+          <span class="col-category">Category</span>
+          <span class="col-date">Date</span>
+          <span class="col-amount">Amount</span>
+          <span class="col-action"></span>
+        </div>
+        <ul class="transaction-list" id="transaction-list" role="list">
+          <li class="empty-state" id="transaction-list-empty">No transactions recorded yet.</li>
+        </ul>
+      </div>
     </section>
 
     <!-- Analytics Tab -->
@@ -191,7 +214,7 @@
         <h2>Budget &amp; Categories</h2>
         <div class="form-group">
           <label for="global-budget">Global Monthly Budget</label>
-          <input type="number" id="global-budget" min="0.01" step="0.01" placeholder="0.00" />
+          <input type="number" id="global-budget" min="0.01" step="0.01" placeholder="0.00" class="numeric-tabular" />
           <span class="field-error" id="error-global-budget"></span>
         </div>
         <button class="btn-primary" id="save-budget-btn"><i data-lucide="save"></i> Save Budget</button>

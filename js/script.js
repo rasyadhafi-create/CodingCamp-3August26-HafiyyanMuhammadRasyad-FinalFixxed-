@@ -465,7 +465,7 @@ const ChartModule = {
         datasets: [{
           data,
           backgroundColor: colors,
-          borderWidth: 2,
+          borderWidth: 0,
           hoverOffset: 16,
         }],
       },
@@ -920,7 +920,7 @@ const RenderModule = {
       return;
     }
     recent.forEach((t) => {
-      const li = this._buildTransactionItem(t, false);
+      const li = this._buildTransactionItem(t, true);
       list.appendChild(li);
     });
     // initialize lucide icons for any injected icon markup
@@ -1007,17 +1007,28 @@ const RenderModule = {
     const sign = t.type === "income" ? "+" : "-";
     const amountClass = t.type === "income" ? "income" : "expense";
     const formattedDate = this._formatDate(t.date);
+    const catSlug = String(t.category || "").toLowerCase().replace(/[^a-z0-9]/g, "-");
+
+    let catIcon = "shopping-bag";
+    const catLower = (t.category || "").toLowerCase();
+    if (catLower.includes("food")) catIcon = "utensils";
+    else if (catLower.includes("transport")) catIcon = "car";
+    else if (catLower.includes("fun")) catIcon = "film";
+    else if (t.type === "income") catIcon = "arrow-down-left";
 
     li.innerHTML = `
-      <div class="transaction-info">
-        <p class="transaction-name">${this._escapeHTML(t.item_name)}</p>
-        <div class="transaction-meta">
-          <span class="category-badge">${this._escapeHTML(t.category)}</span>
-          <span>${formattedDate}</span>
-        </div>
+      <div class="col-item">
+        <div class="item-icon-bg"><i data-lucide="${catIcon}"></i></div>
+        <span class="item-name">${this._escapeHTML(t.item_name)}</span>
       </div>
-      <span class="transaction-amount ${amountClass}">${sign}${CurrencyModule.format(t.amount, StateModule.currency)}</span>
-      ${showDelete ? `<button class="delete-btn" data-id="${t.id}" aria-label="Delete ${this._escapeHTML(t.item_name)}"><i data-lucide="trash-2"></i></button>` : ""}
+      <div class="col-category">
+        <span class="category-badge cat-${catSlug}">${this._escapeHTML(t.category)}</span>
+      </div>
+      <div class="col-date numeric-tabular">${formattedDate}</div>
+      <div class="col-amount numeric-tabular ${amountClass}">${sign}${CurrencyModule.format(t.amount, StateModule.currency)}</div>
+      <div class="col-action">
+        ${showDelete ? `<button class="delete-btn" data-id="${t.id}" aria-label="Delete ${this._escapeHTML(t.item_name)}"><i data-lucide="trash-2"></i></button>` : ""}
+      </div>
     `;
     return li;
   },
@@ -1315,19 +1326,26 @@ if (typeof document !== "undefined") {
       });
     }
 
-    // Delete button — delegated listener on transaction list
+    // Delete button — delegated listener shared by recent & full lists
+    const handleTransactionDelete = (e) => {
+      const btn = e.target.closest(".delete-btn");
+      if (!btn) return;
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+      TransactionModule.remove(id);
+      RenderModule.renderTransactionList(TransactionModule.getAll().reverse());
+      RenderModule.renderDashboard();
+      if (RouterModule.currentTab === "analytics") RenderModule.renderAnalytics();
+    };
+
     const transactionList = document.getElementById("transaction-list");
     if (transactionList) {
-      transactionList.addEventListener("click", (e) => {
-        const btn = e.target.closest(".delete-btn");
-        if (!btn) return;
-        const id = btn.getAttribute("data-id");
-        if (!id) return;
-        TransactionModule.remove(id);
-        RenderModule.renderTransactionList(TransactionModule.getAll().reverse());
-        RenderModule.renderDashboard();
-        if (RouterModule.currentTab === "analytics") RenderModule.renderAnalytics();
-      });
+      transactionList.addEventListener("click", handleTransactionDelete);
+    }
+
+    const recentList = document.getElementById("recent-list");
+    if (recentList) {
+      recentList.addEventListener("click", handleTransactionDelete);
     }
 
     // "See All" button — navigate to transactions tab
