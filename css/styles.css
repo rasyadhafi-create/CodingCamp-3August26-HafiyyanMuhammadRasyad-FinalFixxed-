@@ -373,6 +373,43 @@ h3 [data-lucide] {
   color: var(--color-expense);
 }
 
+/* Task #3: Balance breakdown styling */
+.balance-breakdown {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.balance-breakdown-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.breakdown-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+}
+
+.breakdown-amount {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.breakdown-amount.income {
+  color: var(--color-income);
+}
+
+.breakdown-amount.expense {
+  color: var(--color-expense);
+}
+
 /* ------------------------------------------------------------
    7. Form Controls & Buttons
    ------------------------------------------------------------ */
@@ -393,6 +430,7 @@ h3 [data-lucide] {
 input[type="text"],
 input[type="number"],
 input[type="email"],
+input[type="date"],
 select,
 textarea {
   width: 100%;
@@ -404,6 +442,16 @@ textarea {
   color: var(--color-text);
   transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
+}
+
+/* Date input specific styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  cursor: pointer;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
 }
 
 input:focus,
@@ -628,7 +676,9 @@ textarea:focus {
 }
 
 .category-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
   font-size: 0.6875rem;
@@ -637,6 +687,12 @@ textarea:focus {
   color: var(--color-on-secondary-container);
   border: 1px solid var(--color-outline-variant);
   white-space: nowrap;
+}
+
+.category-badge [data-lucide] {
+  width: 0.875em;
+  height: 0.875em;
+  stroke-width: 2.5;
 }
 
 /* Category badge variations */
@@ -691,6 +747,74 @@ textarea:focus {
   color: var(--color-muted);
   padding: 2rem 1rem;
   font-size: 0.8125rem;
+}
+
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recent-header h2 {
+  margin-bottom: 0;
+}
+
+.recent-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Task #7 & #8: Chart and transaction filters */
+.chart-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.chart-date-filter,
+.date-range-filter {
+  height: 32px;
+  min-width: 140px;
+  padding: 0 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.custom-date-range {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.custom-date-input {
+  height: 32px;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  min-width: 130px;
+}
+
+.date-separator {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+/* Analytics filter bar specific styling */
+.analytics-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.analytics-filter-bar h2 {
+  margin-bottom: 0;
+  margin-right: auto;
 }
 
 /* ------------------------------------------------------------
@@ -766,6 +890,13 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.chart-legend-icon {
+  width: 0.875em;
+  height: 0.875em;
+  stroke-width: 2.5;
+  color: var(--color-text-variant);
+}
+
 /* Month over Month Analytics Card */
 .mom-totals {
   display: flex;
@@ -823,6 +954,7 @@ textarea:focus {
 .mom-top-cats li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.8125rem;
   padding: 0.35rem 0;
   border-bottom: 1px solid var(--color-outline-variant);
@@ -830,6 +962,19 @@ textarea:focus {
 
 .mom-top-cats li:last-child {
   border-bottom: none;
+}
+
+.mom-cat-name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.mom-cat-name [data-lucide] {
+  width: 0.875em;
+  height: 0.875em;
+  stroke-width: 2.5;
+  color: var(--color-text-variant);
 }
 
 /* ------------------------------------------------------------
@@ -1253,9 +1398,10 @@ textarea:focus {
     align-items: start;
   }
 
-  #tab-analytics .analytics-donut     { grid-column: 1; grid-row: 1; }
-  #tab-analytics .mom-comparison       { grid-column: 2; grid-row: 1; }
-  #tab-analytics .monthly-trend-chart  { grid-column: 1 / -1; grid-row: 2; }
+  #tab-analytics .analytics-filter-bar { grid-column: 1 / -1; grid-row: 1; }
+  #tab-analytics .analytics-donut      { grid-column: 1; grid-row: 2; }
+  #tab-analytics .mom-comparison       { grid-column: 2; grid-row: 2; }
+  #tab-analytics .monthly-trend-chart  { grid-column: 1 / -1; grid-row: 3; }
 
   #tab-settings {
     display: grid;

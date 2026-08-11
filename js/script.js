@@ -179,6 +179,15 @@ const ValidatorModule = {
   CATEGORY_MAX: 50,
   PROFILE_NAME_MAX: 50,
 
+  // Task #12: Capitalize first letter of each word for consistency
+  capitalizeWords(str) {
+    return String(str || "")
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  },
+
   validateTransaction(fields) {
     const errors = {};
     const name = (fields.item_name || "").trim();
@@ -270,16 +279,21 @@ const TransactionModule = {
     const id = (typeof crypto !== "undefined" && crypto.randomUUID)
       ? crypto.randomUUID()
       : Date.now().toString();
-    const today = new Date();
-    const date = today.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    // Task #5: Use provided date or default to today
+    const date = fields.date || new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    
+    // Task #12: Capitalize category names for consistency
+    let categoryName = fields.category === "Custom"
+      ? (fields.custom_category || "").trim()
+      : fields.category;
+    categoryName = ValidatorModule.capitalizeWords(categoryName);
+    
     const transaction = {
       id,
       item_name: (fields.item_name || "").trim(),
       amount: parseFloat(fields.amount),
       type: fields.type,
-      category: fields.category === "Custom"
-        ? (fields.custom_category || "").trim()
-        : fields.category,
+      category: categoryName,
       date,
     };
     StateModule.transactions.push(transaction);
@@ -359,6 +373,61 @@ const FilterModule = {
 };
 
 /* ============================================================
+   DateFilterModule — date range filtering (Task #7 & #8)
+   ============================================================ */
+const DateFilterModule = {
+  filterByDateRange(transactions, rangeType, customStart, customEnd) {
+    if (!transactions || !transactions.length) return [];
+    
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    
+    let startDate, endDate;
+    
+    switch (rangeType) {
+      case "this-month":
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+        endDate = today;
+        break;
+      
+      case "last-month":
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        startDate = lastMonth.toISOString().slice(0, 10);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+        endDate = lastMonthEnd.toISOString().slice(0, 10);
+        break;
+      
+      case "last-3-months":
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate()).toISOString().slice(0, 10);
+        endDate = today;
+        break;
+      
+      case "last-7-days":
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        startDate = sevenDaysAgo.toISOString().slice(0, 10);
+        endDate = today;
+        break;
+      
+      case "custom":
+        if (!customStart || !customEnd) return transactions;
+        startDate = customStart;
+        endDate = customEnd;
+        break;
+      
+      case "all":
+      default:
+        return transactions;
+    }
+    
+    return transactions.filter(t => {
+      const tDate = t.date || "";
+      return tDate >= startDate && tDate <= endDate;
+    });
+  },
+};
+
+/* ============================================================
    SortModule — sort order application
    ============================================================ */
 const SortModule = {
@@ -377,6 +446,169 @@ const SortModule = {
       default:
         return arr.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
     }
+  },
+};
+
+/* ============================================================
+   DateRangeFilterManager — Reusable date range filter handler
+   Prevents code duplication across dashboard, transactions, analytics
+   ============================================================ */
+const DateRangeFilterManager = {
+  /**
+   * Setup date range filter UI and return a handler to get filtered transactions
+   * @param {string} selectId - ID of the date range select element
+   * @param {string} customRangeId - ID of the custom date range container
+   * @param {string} startDateId - ID of the start date input
+   * @param {string} endDateId - ID of the end date input
+   * @param {Function} onChangeCallback - Called when filter changes with filtered transactions
+   */
+  setup(selectId, customRangeId, startDateId, endDateId, onChangeCallback) {
+    if (typeof document === "undefined") return null;
+    
+    const select = document.getElementById(selectId);
+    const customRange = document.getElementById(customRangeId);
+    const startDate = document.getElementById(startDateId);
+    const endDate = document.getElementById(endDateId);
+    
+    if (!select) return null;
+    
+    const state = {
+      rangeType: select.value || "all",
+      customStart: null,
+      customEnd: null,
+    };
+    
+    const applyFilter = () => {
+      const filtered = DateFilterModule.filterByDateRange(
+        StateModule.transactions,
+        state.rangeType,
+        state.customStart,
+        state.customEnd
+      );
+      if (onChangeCallback) onChangeCallback(filtered);
+    };
+    
+    // Show/hide custom date range inputs
+    select.addEventListener("change", () => {
+      state.rangeType = select.value;
+      if (customRange) {
+        if (state.rangeType === "custom") {
+          customRange.classList.remove("hidden");
+        } else {
+          customRange.classList.add("hidden");
+          applyFilter();
+        }
+      } else {
+        applyFilter();
+      }
+    });
+    
+    // Handle custom date range changes
+    if (startDate && endDate && customRange) {
+      startDate.addEventListener("change", () => {
+        state.customStart = startDate.value;
+        if (state.rangeType === "custom" && state.customEnd) {
+          applyFilter();
+        }
+      });
+      
+      endDate.addEventListener("change", () => {
+        state.customEnd = endDate.value;
+        if (state.rangeType === "custom" && state.customStart) {
+          applyFilter();
+        }
+      });
+    }
+    
+    // Return interface to manually trigger filter
+    return {
+      applyFilter,
+      getState: () => ({ ...state }),
+    };
+  },
+};
+
+/* ============================================================
+   CategoryIconModule — Icon mapping for categories using Lucide
+   ============================================================ */
+const CategoryIconModule = {
+  // Expense category icons
+  EXPENSE_ICONS: {
+    "Food": "utensils",
+    "Transport": "car",
+    "Fun": "smile",
+    "Shopping": "shopping-bag",
+    "Health": "heart-pulse",
+    "Education": "graduation-cap",
+    "Entertainment": "tv",
+    "Bills": "receipt",
+  },
+  
+  // Income category icons
+  INCOME_ICONS: {
+    "Salary": "briefcase",
+    "Bonus": "gift",
+    "Investment": "trending-up",
+    "Freelance": "laptop",
+    "Gift": "heart",
+    "Other": "plus-circle",
+  },
+  
+  /**
+   * Get icon name for a category
+   * @param {string} category - Category name
+   * @param {string} type - Transaction type ("income" or "expense")
+   * @returns {string} Lucide icon name
+   */
+  getIcon(category, type) {
+    if (!category) return "circle";
+    
+    // Custom categories - use folder icon
+    if (category.toLowerCase() === "custom") {
+      return "folder-plus";
+    }
+    
+    // Check direct match first
+    const iconMap = type === "income" ? this.INCOME_ICONS : this.EXPENSE_ICONS;
+    if (iconMap[category]) {
+      return iconMap[category];
+    }
+    
+    // Fallback: fuzzy match by keyword
+    const catLower = category.toLowerCase();
+    
+    // Expense keywords
+    if (catLower.includes("food") || catLower.includes("meal") || catLower.includes("restaurant")) return "utensils";
+    if (catLower.includes("transport") || catLower.includes("travel") || catLower.includes("commute")) return "car";
+    if (catLower.includes("fun") || catLower.includes("hobby")) return "smile";
+    if (catLower.includes("shop") || catLower.includes("retail")) return "shopping-bag";
+    if (catLower.includes("health") || catLower.includes("medical") || catLower.includes("fitness")) return "heart-pulse";
+    if (catLower.includes("education") || catLower.includes("school") || catLower.includes("course")) return "graduation-cap";
+    if (catLower.includes("entertainment") || catLower.includes("movie") || catLower.includes("game")) return "tv";
+    if (catLower.includes("bill") || catLower.includes("utility") || catLower.includes("rent")) return "receipt";
+    
+    // Income keywords
+    if (catLower.includes("salary") || catLower.includes("wage")) return "briefcase";
+    if (catLower.includes("bonus") || catLower.includes("commission")) return "gift";
+    if (catLower.includes("investment") || catLower.includes("dividend") || catLower.includes("stock")) return "trending-up";
+    if (catLower.includes("freelance") || catLower.includes("gig") || catLower.includes("project")) return "laptop";
+    if (catLower.includes("gift") || catLower.includes("donation")) return "heart";
+    
+    // Default fallback
+    return type === "income" ? "arrow-down-left" : "tag";
+  },
+  
+  /**
+   * Build HTML for icon + text category option/badge
+   * @param {string} category - Category name
+   * @param {string} type - Transaction type
+   * @param {boolean} includeText - Whether to include text label
+   * @returns {string} HTML string
+   */
+  buildIconLabel(category, type, includeText = true) {
+    const icon = this.getIcon(category, type);
+    const iconHTML = `<i data-lucide="${icon}"></i>`;
+    return includeText ? `${iconHTML} ${category}` : iconHTML;
   },
 };
 
@@ -555,12 +787,22 @@ const ChartModule = {
       el.innerHTML = "";
       return;
     }
-    el.innerHTML = categoryData.map((d) =>
-      `<span class="chart-legend-item">` +
+    // Filter out categories with 0 amount (Task #2)
+    const filteredData = categoryData.filter((d) => d.amount > 0);
+    el.innerHTML = filteredData.map((d) => {
+      // Determine transaction type from context (assume expense for charts)
+      const icon = CategoryIconModule.getIcon(d.label, "expense");
+      return `<span class="chart-legend-item">` +
         `<span class="chart-legend-dot" style="background-color:${d.color};"></span>` +
+        `<i data-lucide="${icon}" class="chart-legend-icon"></i>` +
         `<span class="chart-legend-name">${RenderModule._escapeHTML ? RenderModule._escapeHTML(d.label) : d.label}</span>` +
-      `</span>`
-    ).join("");
+      `</span>`;
+    }).join("");
+    
+    // Re-initialize Lucide icons for dynamically added legend
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   rerenderAll() {
@@ -841,7 +1083,13 @@ const CurrencyModule = {
     // Format with thousand separators
     const parts = abs.toFixed(2).split(".");
     const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, cfg.thousandSep);
-    return `${sign}${cfg.symbol} ${intPart}${cfg.decimalSep}${parts[1]}`;
+    
+    // Only show decimal part if it's not "00"
+    if (parts[1] === "00") {
+      return `${sign}${cfg.symbol} ${intPart}`;
+    } else {
+      return `${sign}${cfg.symbol} ${intPart}${cfg.decimalSep}${parts[1]}`;
+    }
   },
 
   _abbreviate(abs) {
@@ -903,14 +1151,35 @@ const RenderModule = {
       el.textContent = formatted;
       el.classList.toggle("negative", balance < 0);
     }
+    // Task #3: Update income and expense breakdown
+    const incomeEl = document.getElementById("balance-income");
+    const expenseEl = document.getElementById("balance-expense");
+    if (incomeEl) {
+      incomeEl.textContent = CurrencyModule.format(income, StateModule.currency);
+    }
+    if (expenseEl) {
+      expenseEl.textContent = CurrencyModule.format(expense, StateModule.currency);
+    }
   },
 
-  renderRecentTransactions() {
+  // Task #8: Render recent transactions with date filter support
+  renderRecentTransactions(dateFilter) {
     if (typeof document === "undefined") return;
     const list = document.getElementById("recent-list");
     const empty = document.getElementById("recent-empty");
     if (!list) return;
-    const recent = TransactionModule.getRecent(5);
+    
+    // Apply date filter if provided
+    let transactions = StateModule.transactions.slice();
+    if (dateFilter && dateFilter !== "all") {
+      transactions = DateFilterModule.filterByDateRange(transactions, dateFilter);
+    }
+    
+    // Sort by date and get recent
+    const recent = transactions
+      .sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0))
+      .slice(0, 5);
+    
     list.innerHTML = "";
     if (!recent.length) {
       if (empty) {
@@ -959,9 +1228,17 @@ const RenderModule = {
     `;
   },
 
-  renderDashboardDonut() {
+  // Task #7: Render dashboard donut with date filter support
+  renderDashboardDonut(dateFilter, customStart, customEnd) {
     if (typeof document === "undefined") return;
-    const categoryData = ChartModule.buildCategoryData(StateModule.transactions);
+    
+    // Apply date filter if provided
+    let transactions = StateModule.transactions.slice();
+    if (dateFilter && dateFilter !== "all") {
+      transactions = DateFilterModule.filterByDateRange(transactions, dateFilter, customStart, customEnd);
+    }
+    
+    const categoryData = ChartModule.buildCategoryData(transactions);
     const canvas = document.getElementById("dashboard-donut-canvas");
     const empty = document.getElementById("dashboard-donut-empty");
     if (!canvas) return;
@@ -1009,12 +1286,8 @@ const RenderModule = {
     const formattedDate = this._formatDate(t.date);
     const catSlug = String(t.category || "").toLowerCase().replace(/[^a-z0-9]/g, "-");
 
-    let catIcon = "shopping-bag";
-    const catLower = (t.category || "").toLowerCase();
-    if (catLower.includes("food")) catIcon = "utensils";
-    else if (catLower.includes("transport")) catIcon = "car";
-    else if (catLower.includes("fun")) catIcon = "film";
-    else if (t.type === "income") catIcon = "arrow-down-left";
+    // Use CategoryIconModule for consistent icon mapping
+    const catIcon = CategoryIconModule.getIcon(t.category, t.type);
 
     li.innerHTML = `
       <div class="col-item">
@@ -1022,7 +1295,10 @@ const RenderModule = {
         <span class="item-name">${this._escapeHTML(t.item_name)}</span>
       </div>
       <div class="col-category">
-        <span class="category-badge cat-${catSlug}">${this._escapeHTML(t.category)}</span>
+        <span class="category-badge cat-${catSlug}">
+          <i data-lucide="${catIcon}"></i>
+          ${this._escapeHTML(t.category)}
+        </span>
       </div>
       <div class="col-date numeric-tabular">${formattedDate}</div>
       <div class="col-amount numeric-tabular ${amountClass}">${sign}${CurrencyModule.format(t.amount, StateModule.currency)}</div>
@@ -1048,15 +1324,17 @@ const RenderModule = {
       .replace(/"/g, "&quot;");
   },
 
-  renderAnalytics() {
+  renderAnalytics(filteredTransactions) {
     if (typeof document === "undefined") return;
-    this._renderAnalyticsDonut();
-    this._renderAnalyticsTrend();
-    this._renderAnalyticsMoM();
+    // Use filtered transactions if provided, otherwise use all
+    const transactions = filteredTransactions || StateModule.transactions;
+    this._renderAnalyticsDonut(transactions);
+    this._renderAnalyticsTrend(transactions);
+    this._renderAnalyticsMoM(transactions);
   },
 
-  _renderAnalyticsDonut() {
-    const categoryData = ChartModule.buildCategoryData(StateModule.transactions);
+  _renderAnalyticsDonut(transactions) {
+    const categoryData = ChartModule.buildCategoryData(transactions || StateModule.transactions);
     const canvas = document.getElementById("analytics-donut-canvas");
     const empty  = document.getElementById("analytics-donut-empty");
     if (!canvas) return;
@@ -1071,7 +1349,8 @@ const RenderModule = {
     }
   },
 
-  _renderAnalyticsTrend() {
+  _renderAnalyticsTrend(transactions) {
+    const tx = transactions || StateModule.transactions;
     const canvas = document.getElementById("monthly-trend-canvas");
     const empty  = document.getElementById("monthly-trend-empty");
     if (!canvas) return;
@@ -1084,7 +1363,7 @@ const RenderModule = {
 
     // Aggregate expenses by day-of-month for the current month
     const byDay = {};
-    StateModule.transactions.forEach((t) => {
+    tx.forEach((t) => {
       if (t.type !== "expense") return;
       if (!(t.date || "").startsWith(prefix)) return;
       const day = parseInt(t.date.slice(8, 10), 10);
@@ -1110,7 +1389,8 @@ const RenderModule = {
     ChartModule.renderLine("monthly-trend-canvas", dataPoints);
   },
 
-  _renderAnalyticsMoM() {
+  _renderAnalyticsMoM(transactions) {
+    const tx = transactions || StateModule.transactions;
     const container = document.getElementById("mom-content");
     if (!container) return;
 
@@ -1123,8 +1403,8 @@ const RenderModule = {
     let prevMonth = curMonth - 1;
     if (prevMonth === 0) { prevMonth = 12; prevYear = curYear - 1; }
 
-    const curTotal  = BudgetModule.computeMonthlyExpense(StateModule.transactions, curYear,  curMonth);
-    const prevTotal = BudgetModule.computeMonthlyExpense(StateModule.transactions, prevYear, prevMonth);
+    const curTotal  = BudgetModule.computeMonthlyExpense(tx, curYear,  curMonth);
+    const prevTotal = BudgetModule.computeMonthlyExpense(tx, prevYear, prevMonth);
 
     // Month name helper
     const MONTHS = ["January","February","March","April","May","June",
@@ -1147,7 +1427,7 @@ const RenderModule = {
     // Top 3 categories for current month
     const curPrefix = `${curYear}-${String(curMonth).padStart(2, "0")}`;
     const catMap = {};
-    StateModule.transactions.forEach((t) => {
+    tx.forEach((t) => {
       if (t.type !== "expense") return;
       if (!(t.date || "").startsWith(curPrefix)) return;
       catMap[t.category] = (catMap[t.category] || 0) + (t.amount || 0);
@@ -1157,10 +1437,16 @@ const RenderModule = {
       .slice(0, 3);
 
     const topCatsHTML = topCats.length
-      ? `<ol class="mom-top-cats">${topCats.map(([cat, amt]) =>
-          `<li><span class="mom-cat-name">${this._escapeHTML(cat)}</span>
-               <span class="mom-cat-amt">${CurrencyModule.format(amt, StateModule.currency)}</span></li>`
-        ).join("")}</ol>`
+      ? `<ol class="mom-top-cats">${topCats.map(([cat, amt]) => {
+          const icon = CategoryIconModule.getIcon(cat, "expense");
+          return `<li>
+               <span class="mom-cat-name">
+                 <i data-lucide="${icon}"></i>
+                 ${this._escapeHTML(cat)}
+               </span>
+               <span class="mom-cat-amt">${CurrencyModule.format(amt, StateModule.currency)}</span>
+             </li>`;
+        }).join("")}</ol>`
       : `<p class="mom-no-prior">No expense categories this month.</p>`;
 
     container.innerHTML = `
@@ -1178,6 +1464,11 @@ const RenderModule = {
       <h3 class="mom-top-title">Top 3 Categories</h3>
       ${topCatsHTML}
     `;
+    
+    // Re-initialize Lucide icons for MoM category icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   },
 
   renderSettings() {
@@ -1224,7 +1515,129 @@ if (typeof document !== "undefined") {
     // Quick Add Form submit (task 9.2)
     let _selectedType = "expense";
 
-    // Type toggle buttons
+    // Task #4: Dynamic category dropdown based on transaction type
+    // Task #12: Consistent capitalization for categories
+    const EXPENSE_CATEGORIES = ["Food", "Transport", "Fun", "Shopping", "Health", "Education", "Entertainment", "Bills", "Custom"];
+    const INCOME_CATEGORIES = ["Salary", "Bonus", "Investment", "Freelance", "Gift", "Other", "Custom"];
+
+    function updateCategoryDropdown(type) {
+      const categorySelect = document.getElementById("category");
+      if (!categorySelect) return;
+      
+      const categories = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      
+      // Build options with icon indicators (using Unicode symbols for compatibility)
+      const iconMap = {
+        // Expense icons
+        "Food": "🍽️",
+        "Transport": "🚗",
+        "Fun": "😊",
+        "Shopping": "🛍️",
+        "Health": "💊",
+        "Education": "🎓",
+        "Entertainment": "📺",
+        "Bills": "📄",
+        // Income icons
+        "Salary": "💼",
+        "Bonus": "🎁",
+        "Investment": "📈",
+        "Freelance": "💻",
+        "Gift": "❤️",
+        "Other": "➕",
+        "Custom": "📁",
+      };
+      
+      categorySelect.innerHTML = '<option value="">Select category</option>' +
+        categories.map(cat => {
+          const icon = iconMap[cat] || "•";
+          return `<option value="${cat}">${icon} ${cat}</option>`;
+        }).join("");
+    }
+
+    // Initialize with expense categories
+    updateCategoryDropdown("expense");
+
+    // Task #5: Set default date to today
+    const dateInput = document.getElementById("transaction-date");
+    if (dateInput) {
+      const today = new Date().toISOString().slice(0, 10);
+      dateInput.value = today;
+    }
+
+    // Task #6: Amount input formatting with thousand separators
+    const amountInput = document.getElementById("amount");
+    let rawAmountValue = "";
+    
+    if (amountInput) {
+      // FIX #1: Convert type="number" to type="text" to allow formatted values
+      if (amountInput.type === "number") {
+        amountInput.type = "text";
+        amountInput.setAttribute("inputmode", "decimal");
+      }
+      
+      amountInput.addEventListener("input", (e) => {
+        // FIX #2: Get currency config dynamically (inside listener)
+        const cfg = CurrencyModule._CONFIGS[StateModule.currency] || CurrencyModule._CONFIGS.IDR;
+        
+        const cursorPos = e.target.selectionStart;
+        const valueBefore = e.target.value;
+        
+        // Filter input: only allow digits and the correct decimal separator
+        let filtered = "";
+        let decimalCount = 0;
+        for (let i = 0; i < valueBefore.length; i++) {
+          const char = valueBefore[i];
+          if (/\d/.test(char)) {
+            filtered += char;
+          } else if (char === cfg.decimalSep && decimalCount === 0) {
+            filtered += char;
+            decimalCount++;
+          }
+          // Skip any other characters (including thousand separators)
+        }
+        
+        // Don't format while typing if empty or just a decimal separator
+        if (!filtered || filtered === cfg.decimalSep) {
+          e.target.value = filtered;
+          return;
+        }
+        
+        // Split by decimal separator
+        const parts = filtered.split(cfg.decimalSep);
+        const intPart = parts[0];
+        const decimalPart = parts.length > 1 ? parts[1] : "";
+        
+        // Format integer part with thousand separators
+        const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, cfg.thousandSep);
+        
+        // Combine with decimal part if present
+        const formatted = decimalPart
+          ? formattedInt + cfg.decimalSep + decimalPart
+          : formattedInt;
+        
+        // Only update if different to avoid cursor issues
+        if (formatted !== valueBefore) {
+          e.target.value = formatted;
+          // Try to maintain cursor position
+          const diff = formatted.length - valueBefore.length;
+          e.target.setSelectionRange(cursorPos + diff, cursorPos + diff);
+        }
+      });
+      
+      // Remove formatting before form submission
+      amountInput.addEventListener("blur", () => {
+        if (amountInput.value) {
+          // FIX #2: Normalize using currency-specific separators
+          const cfg = CurrencyModule._CONFIGS[StateModule.currency] || CurrencyModule._CONFIGS.IDR;
+          const normalized = amountInput.value
+            .split(cfg.thousandSep).join("")
+            .split(cfg.decimalSep).join(".");
+          amountInput.setAttribute("data-raw", normalized);
+        }
+      });
+    }
+
+    // Type toggle buttons with dynamic category update
     const typeExpenseBtn = document.getElementById("type-expense");
     const typeIncomeBtn  = document.getElementById("type-income");
     if (typeExpenseBtn && typeIncomeBtn) {
@@ -1232,11 +1645,13 @@ if (typeof document !== "undefined") {
         _selectedType = "expense";
         typeExpenseBtn.classList.add("active");
         typeIncomeBtn.classList.remove("active");
+        updateCategoryDropdown("expense"); // Task #4
       });
       typeIncomeBtn.addEventListener("click", () => {
         _selectedType = "income";
         typeIncomeBtn.classList.add("active");
         typeExpenseBtn.classList.remove("active");
+        updateCategoryDropdown("income"); // Task #4
       });
     }
 
@@ -1260,19 +1675,27 @@ if (typeof document !== "undefined") {
         e.preventDefault();
 
         // Clear previous errors
-        ["item-name", "amount", "type", "category", "custom-category"].forEach((id) => {
+        ["item-name", "amount", "date", "type", "category", "custom-category"].forEach((id) => {
           const el = document.getElementById("error-" + id);
           if (el) el.textContent = "";
         });
 
+        // Get clean amount value (remove thousand separators)
+        // FIX #3: Use currency-specific separators for normalization
+        const cfg = CurrencyModule._CONFIGS[StateModule.currency] || CurrencyModule._CONFIGS.IDR;
+        const cleanAmount = amountInput
+          ? amountInput.value.split(cfg.thousandSep).join("").split(cfg.decimalSep).join(".")
+          : "";
+        
         const fields = {
           item_name: document.getElementById("item-name").value,
-          amount: document.getElementById("amount").value,
+          amount: cleanAmount,
           type: _selectedType,
           category: categorySelect ? categorySelect.value : "",
           custom_category: document.getElementById("custom-category")
             ? document.getElementById("custom-category").value
             : "",
+          date: dateInput ? dateInput.value : "", // Task #5
         };
 
         const { valid, errors } = ValidatorModule.validateTransaction(fields);
@@ -1318,11 +1741,61 @@ if (typeof document !== "undefined") {
         if (typeExpenseBtn) typeExpenseBtn.classList.add("active");
         if (typeIncomeBtn)  typeIncomeBtn.classList.remove("active");
         if (customCategoryGroup) customCategoryGroup.classList.add("hidden");
+        updateCategoryDropdown("expense"); // Reset to expense categories
+        
+        // Reset date to today
+        if (dateInput) {
+          const today = new Date().toISOString().slice(0, 10);
+          dateInput.value = today;
+        }
 
         // Re-render dashboard and transaction list
         RenderModule.renderDashboard();
         RenderModule.renderTransactionList(TransactionModule.getAll().reverse());
         if (RouterModule.currentTab === "analytics") RenderModule.renderAnalytics();
+      });
+    }
+
+    // Task #9: Delete confirmation modal
+    let pendingDeleteId = null;
+    const deleteModal = document.getElementById("delete-modal");
+    const deleteConfirmBtn = document.getElementById("delete-confirm-btn");
+    const deleteCancelBtn = document.getElementById("delete-cancel-btn");
+
+    function showDeleteModal(id) {
+      pendingDeleteId = id;
+      if (deleteModal) {
+        deleteModal.classList.remove("hidden");
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    }
+
+    function hideDeleteModal() {
+      pendingDeleteId = null;
+      if (deleteModal) deleteModal.classList.add("hidden");
+    }
+
+    if (deleteConfirmBtn) {
+      deleteConfirmBtn.addEventListener("click", () => {
+        if (pendingDeleteId) {
+          TransactionModule.remove(pendingDeleteId);
+          RenderModule.renderTransactionList(TransactionModule.getAll().reverse());
+          RenderModule.renderDashboard();
+          if (RouterModule.currentTab === "analytics") RenderModule.renderAnalytics();
+          ToastModule.show("Transaction deleted");
+        }
+        hideDeleteModal();
+      });
+    }
+
+    if (deleteCancelBtn) {
+      deleteCancelBtn.addEventListener("click", hideDeleteModal);
+    }
+
+    // Close modal on backdrop click
+    if (deleteModal) {
+      deleteModal.addEventListener("click", (e) => {
+        if (e.target === deleteModal) hideDeleteModal();
       });
     }
 
@@ -1332,10 +1805,7 @@ if (typeof document !== "undefined") {
       if (!btn) return;
       const id = btn.getAttribute("data-id");
       if (!id) return;
-      TransactionModule.remove(id);
-      RenderModule.renderTransactionList(TransactionModule.getAll().reverse());
-      RenderModule.renderDashboard();
-      if (RouterModule.currentTab === "analytics") RenderModule.renderAnalytics();
+      showDeleteModal(id); // Show confirmation instead of immediate delete
     };
 
     const transactionList = document.getElementById("transaction-list");
@@ -1353,6 +1823,108 @@ if (typeof document !== "undefined") {
     if (seeAllBtn) {
       seeAllBtn.addEventListener("click", () => RouterModule.navigate("transactions"));
     }
+
+    // Task #10: Enhanced search functionality
+    const searchInput = document.getElementById("search-input");
+    const filterCategory = document.getElementById("filter-category");
+    const filterMonth = document.getElementById("filter-month");
+    const sortSelect = document.getElementById("sort-select");
+    const transactionsDateFilter = document.getElementById("transactions-date-filter");
+
+    // Store the current date range state for transactions tab
+    let transactionsDateRange = {
+      rangeType: "all",
+      customStart: null,
+      customEnd: null,
+    };
+
+    function applyFiltersAndSort() {
+      let filtered = StateModule.transactions.slice();
+      
+      // Apply date range filter FIRST
+      if (transactionsDateRange.rangeType !== "all") {
+        filtered = DateFilterModule.filterByDateRange(
+          filtered,
+          transactionsDateRange.rangeType,
+          transactionsDateRange.customStart,
+          transactionsDateRange.customEnd
+        );
+      }
+      
+      // Search by item name, category, or amount
+      if (searchInput && searchInput.value.trim()) {
+        const query = searchInput.value.trim().toLowerCase();
+        filtered = filtered.filter(t => 
+          (t.item_name || "").toLowerCase().includes(query) ||
+          (t.category || "").toLowerCase().includes(query) ||
+          String(t.amount || "").includes(query)
+        );
+      }
+      
+      // Filter by category
+      if (filterCategory && filterCategory.value && filterCategory.value !== "") {
+        filtered = filtered.filter(t => t.category === filterCategory.value);
+      }
+      
+      // Filter by month
+      if (filterMonth && filterMonth.value && filterMonth.value !== "") {
+        filtered = filtered.filter(t => (t.date || "").startsWith(filterMonth.value));
+      }
+      
+      // Sort
+      if (sortSelect && sortSelect.value) {
+        filtered = SortModule.apply(filtered, sortSelect.value);
+      }
+      
+      RenderModule.renderTransactionList(filtered);
+    }
+
+    // Setup Transactions Tab Date Range Filter
+    const transactionsDateFilterManager = DateRangeFilterManager.setup(
+      "transactions-date-filter",
+      "transactions-custom-range",
+      "transactions-start-date",
+      "transactions-end-date",
+      (filtered) => {
+        // Update the state
+        transactionsDateRange = transactionsDateFilterManager.getState();
+        // Re-apply all other filters on top of date filter
+        applyFiltersAndSort();
+      }
+    );
+
+    // Wire up filter/search/sort listeners
+    if (searchInput) {
+      searchInput.addEventListener("input", applyFiltersAndSort);
+    }
+    if (filterCategory) {
+      // Populate category filter from existing transactions
+      const categories = FilterModule.getDistinctCategories(StateModule.transactions);
+      filterCategory.innerHTML = '<option value="">All Categories</option>' +
+        categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
+      filterCategory.addEventListener("change", applyFiltersAndSort);
+    }
+    if (filterMonth) {
+      // Populate month filter from existing transactions
+      const months = FilterModule.getDistinctMonths(StateModule.transactions);
+      filterMonth.innerHTML = '<option value="">All Months</option>' +
+        months.map(m => `<option value="${m}">${m}</option>`).join("");
+      filterMonth.addEventListener("change", applyFiltersAndSort);
+    }
+    if (sortSelect) {
+      sortSelect.addEventListener("change", applyFiltersAndSort);
+    }
+
+    // Setup Analytics Tab Date Range Filter
+    DateRangeFilterManager.setup(
+      "analytics-date-filter",
+      "analytics-custom-range",
+      "analytics-start-date",
+      "analytics-end-date",
+      (filtered) => {
+        RenderModule.renderAnalytics(filtered);
+      }
+    );
 
     // ── Currency Selector ──────────────────────────────────────────────────
     const currencySelect = document.getElementById("currency-select");
@@ -1405,6 +1977,126 @@ if (typeof document !== "undefined") {
         ToastModule.show("Budget saved.");
       });
     }
+
+    // Task #11: PDF Export (using window.print for simplicity)
+    const exportPdfBtn = document.getElementById("export-pdf-btn");
+    if (!exportPdfBtn) {
+      // Create PDF export button if it doesn't exist in Settings > Data Management
+      const dataActions = document.querySelector(".data-actions");
+      if (dataActions) {
+        const pdfBtn = document.createElement("button");
+        pdfBtn.className = "btn-secondary";
+        pdfBtn.id = "export-pdf-btn";
+        pdfBtn.innerHTML = '<i data-lucide="file-text"></i> Export PDF';
+        dataActions.insertBefore(pdfBtn, dataActions.children[2]);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        
+        pdfBtn.addEventListener("click", () => {
+          // Simple PDF export using browser print
+          const printWindow = window.open("", "_blank");
+          const transactions = StateModule.transactions;
+          
+          let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spenchart Transactions Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { color: #00685f; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #00685f; color: white; }
+    .income { color: #00685f; }
+    .expense { color: #ba1a1a; }
+  </style>
+</head>
+<body>
+  <h1>Spenchart Transaction Report</h1>
+  <p>Generated: ${new Date().toLocaleDateString()}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Item</th>
+        <th>Category</th>
+        <th>Type</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>`;
+          
+          transactions.forEach(t => {
+            const typeClass = t.type === "income" ? "income" : "expense";
+            const sign = t.type === "income" ? "+" : "-";
+            html += `
+      <tr>
+        <td>${t.date || ""}</td>
+        <td>${t.item_name || ""}</td>
+        <td>${t.category || ""}</td>
+        <td>${t.type || ""}</td>
+        <td class="${typeClass}">${sign}${CurrencyModule.format(t.amount || 0, StateModule.currency)}</td>
+      </tr>`;
+          });
+          
+          html += `
+    </tbody>
+  </table>
+</body>
+</html>`;
+          
+          printWindow.document.write(html);
+          printWindow.document.close();
+          setTimeout(() => {
+            printWindow.print();
+          }, 250);
+        });
+      }
+    }
+
+    // Task #7: Donut chart date filter
+    const donutDateFilter = document.getElementById("donut-date-filter");
+    const donutCustomRange = document.getElementById("donut-custom-range");
+    const donutStartDate = document.getElementById("donut-start-date");
+    const donutEndDate = document.getElementById("donut-end-date");
+
+    if (donutDateFilter) {
+      donutDateFilter.addEventListener("change", () => {
+        const value = donutDateFilter.value;
+        
+        // Show/hide custom date inputs
+        if (donutCustomRange) {
+          if (value === "custom") {
+            donutCustomRange.classList.remove("hidden");
+          } else {
+            donutCustomRange.classList.add("hidden");
+            RenderModule.renderDashboardDonut(value);
+          }
+        } else {
+          RenderModule.renderDashboardDonut(value);
+        }
+      });
+    }
+
+    // Handle custom date range for donut
+    if (donutStartDate && donutEndDate) {
+      const updateDonutCustomRange = () => {
+        if (donutDateFilter && donutDateFilter.value === "custom") {
+          RenderModule.renderDashboardDonut("custom", donutStartDate.value, donutEndDate.value);
+        }
+      };
+      donutStartDate.addEventListener("change", updateDonutCustomRange);
+      donutEndDate.addEventListener("change", updateDonutCustomRange);
+    }
+
+    // Task #8: Recent transactions date filter
+    const recentDateFilter = document.getElementById("recent-date-filter");
+    if (recentDateFilter) {
+      recentDateFilter.addEventListener("change", () => {
+        const value = recentDateFilter.value;
+        RenderModule.renderRecentTransactions(value);
+      });
+    }
   });
 }
 
@@ -1420,6 +2112,7 @@ if (typeof module !== "undefined") {
     ValidatorModule,
     TransactionModule,
     FilterModule,
+    DateFilterModule,
     SortModule,
     BudgetModule,
     ChartModule,
